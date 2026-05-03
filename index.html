@@ -1,0 +1,195 @@
+<!DOCTYPE html> 
+<html lang="es"> 
+<head> 
+<meta charset="UTF-8"> 
+<title>Buscador Pro</title> 
+
+<style> 
+body { 
+ font-family: Arial; 
+ background: linear-gradient(135deg, #e0eafc, #cfdef3); 
+ display: flex; 
+ justify-content: center; 
+ padding-top: 70px; 
+} 
+
+/* CONTENEDOR */ 
+.buscador { 
+ background: white; 
+ padding: 25px; 
+ border-radius: 16px; 
+ width: 360px; 
+ box-shadow: 0 12px 30px rgba(0,0,0,0.15); 
+ animation: fadeIn 0.6s ease; 
+} 
+
+/* INPUT */ 
+input { 
+ width: 100%; 
+ padding: 12px; 
+ font-size: 16px; 
+ border-radius: 10px; 
+ border: 2px solid #ccc; 
+ outline: none; 
+ transition: 0.3s; 
+} 
+
+/* ESTADOS */ 
+input.valid { 
+ border-color: #2ecc71; 
+} 
+
+input.error { 
+ border-color: #e74c3c; 
+ animation: shake 0.3s; 
+} 
+
+/* BOTÓN */ 
+button { 
+ margin-top: 12px; 
+ width: 100%; 
+ padding: 12px; 
+ background: #007bff; 
+ color: white; 
+ border: none; 
+ border-radius: 10px; 
+ cursor: pointer; 
+ transition: 0.3s; 
+} 
+
+button:hover { 
+ background: #0056b3; 
+ transform: scale(1.03); 
+} 
+
+/* ERROR TEXTO */ 
+.error { 
+ color: #e74c3c; 
+ margin-top: 8px; 
+ font-size: 14px; 
+ min-height: 18px; 
+} 
+
+/* HISTORIAL */ 
+.historial { 
+ margin-top: 15px; 
+} 
+
+.item { 
+ background: #f1f1f1; 
+ padding: 10px; 
+ margin-top: 6px; 
+ border-radius: 10px; 
+ cursor: pointer; 
+ transition: 0.2s; 
+} 
+
+.item:hover { 
+ background: #ddd; 
+ transform: translateX(3px); 
+} 
+
+/* ANIMACIONES */ 
+@keyframes fadeIn { 
+ from {opacity: 0; transform: translateY(10px);} 
+ to {opacity: 1; transform: translateY(0);} 
+} 
+
+@keyframes shake { 
+ 0%,100% {transform: translateX(0);} 
+ 25% {transform: translateX(-4px);} 
+ 50% {transform: translateX(4px);} 
+ 75% {transform: translateX(-4px);} 
+} 
+</style> 
+</head> 
+
+<body> 
+
+<div class="buscador"> 
+ <h3>Order Lookup</h3> 
+
+ <input type="text" id="miInput" placeholder="Order Number"> 
+
+ <button onclick="buscar()">Search</button> 
+
+ <div class="error" id="error"></div> 
+
+ <div class="historial"> 
+ <h4>History</h4> 
+ <div id="listaHistorial"></div> 
+ </div> 
+</div> 
+
+<script> 
+let historial = []; 
+
+function buscar(valorDirecto = null) { 
+
+ let input = document.getElementById("miInput"); 
+ let numero = valorDirecto ?? input.value; 
+
+ let error = document.getElementById("error"); 
+
+ // reset estados 
+ input.classList.remove("error", "valid"); 
+ error.textContent = ""; 
+
+ // VALIDACIÓN 
+ if (!/^\d+$/.test(numero)) { 
+ error.textContent = "Inavlid Number"; 
+
+ input.classList.add("error"); 
+
+ setTimeout(() => { 
+ input.classList.remove("error"); 
+ }, 500); 
+
+ return; 
+ } 
+
+ // estado válido 
+ input.classList.add("valid"); 
+
+ let base = "https://manowar.hover.to/orders/"; 
+ let urlFinal = base + numero; 
+
+ window.open(urlFinal, "_blank"); 
+
+ // historial 
+ historial.unshift(numero); 
+ historial = historial.slice(0, 5); 
+ actualizarHistorial(); 
+
+ input.value = ""; 
+
+ setTimeout(() => { 
+ input.classList.remove("valid"); 
+ }, 600); 
+} 
+
+function actualizarHistorial() { 
+ let contenedor = document.getElementById("listaHistorial"); 
+ contenedor.innerHTML = ""; 
+
+ historial.forEach(num => { 
+ let div = document.createElement("div"); 
+ div.classList.add("item"); 
+ div.textContent = "• " + num; 
+
+ div.onclick = () => buscar(num); 
+
+ contenedor.appendChild(div); 
+ }); 
+} 
+
+// ENTER 
+document.getElementById("miInput").addEventListener("keypress", function(e) { 
+ if (e.key === "Enter") { 
+ buscar(); 
+ } 
+}); 
+</script> 
+
+</body> 
+</html>
