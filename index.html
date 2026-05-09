@@ -1,916 +1,955 @@
-<!DOCTYPE html> 
-<html lang="es"> 
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Order Lookup</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+
+<style>
+    
+    
+
+:root {
+ --primary: #00d2ff;
+ --secondary: #9d50bb;
+ --bg-dark: #0f172a;
+}
+
+* {
+ margin: 0;
+ padding: 0;
+ box-sizing: border-box;
+ font-family: 'Outfit', sans-serif;
+}
+
+body {
+ background-color: var(--bg-dark);
+ color: white;
+ min-height: 100vh;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ position: relative;
+ overflow: hidden;
+ -webkit-font-smoothing: antialiased;
+}
+
+/* =========================
+BACKGROUND SYSTEM
+========================= */
+
+#liquid-bg {
+ position: fixed;
+ inset: 0;
+ z-index: 0;
+ overflow: hidden;
+ pointer-events: none;
+}
+
+.bg-layer {
+ position: absolute;
+ inset: 0;
+
+ background-size: cover;
+ background-position: center;
+ background-repeat: no-repeat;
+
+ transition:
+ opacity 1.8s ease,
+ transform 8s ease;
+
+ will-change: opacity, transform;
+
+ transform: scale(1.05);
+}
+
+.bg-layer::after {
+ content: '';
+ position: absolute;
+ inset: 0;
+
+ background:
+ linear-gradient(
+ rgba(10,15,25,0.45),
+ rgba(10,15,25,0.65)
+ );
+}
+
+.bg-visible {
+ opacity: 1;
+}
+
+.bg-hidden {
+ opacity: 0;
+}
+
+.blob {
+ position: absolute;
+ border-radius: 50%;
+ filter: blur(90px);
+ opacity: 0.20;
+ mix-blend-mode: screen;
+ z-index: 1;
+ transition: background 2s ease;
+ pointer-events: none;
+}
+
+@keyframes move {
 
-<head> 
- <meta charset="UTF-8" /> 
- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
- <title>Order Lookup</title> 
-
- <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet"> 
-
- <style> 
- :root { 
- --primary: #00d2ff; 
- --secondary: #9d50bb; 
- --bg-dark: #0f172a; 
- } 
-
- * { 
- margin: 0; 
- padding: 0; 
- box-sizing: border-box; 
- font-family: 'Outfit', sans-serif; 
- } 
-
- body { 
- background-color: var(--bg-dark); 
- color: white; 
- min-height: 100vh; 
- display: flex; 
- align-items: center; 
- justify-content: center; 
- position: relative; 
- overflow: hidden; 
- -webkit-font-smoothing: antialiased; 
- } 
-
- /* ========================= 
- BACKGROUND SYSTEM 
- ========================= */ 
-
- #liquid-bg { 
- position: fixed; 
- inset: 0; 
- z-index: 0; 
- overflow: hidden; 
- pointer-events: none; 
- } 
-
- .bg-layer { 
- position: absolute; 
- inset: 0; 
-
- background-size: cover; 
- background-position: center; 
- background-repeat: no-repeat; 
-
- transition: 
- opacity 1.8s ease, 
- transform 8s ease; 
-
- will-change: opacity, transform; 
-
- transform: scale(1.05); 
- } 
-
- .bg-layer::after { 
- content: ''; 
- position: absolute; 
- inset: 0; 
-
- background: 
- linear-gradient( 
- rgba(10,15,25,0.45), 
- rgba(10,15,25,0.65) 
- ); 
- } 
-
- .bg-visible { 
- opacity: 1; 
- } 
-
- .bg-hidden { 
- opacity: 0; 
- } 
-
- .blob { 
- position: absolute; 
- border-radius: 50%; 
- filter: blur(90px); 
- opacity: 0.20; 
- mix-blend-mode: screen; 
- z-index: 1; 
- transition: background 2s ease; 
- pointer-events: none; 
- } 
-
- @keyframes move { 
- 0%, 100% { 
- transform: translate(-10%, -10%) scale(1); 
- } 
-
- 50% { 
- transform: translate(15%, 15%) scale(1.15); 
- } 
- } 
-
- .animate-blob { 
- animation: move 20s infinite alternate ease-in-out; 
- } 
-
- /* ========================= 
- GLASS CARD 
- ========================= */ 
-
- .glass-card { 
- position: relative; 
- z-index: 9999; 
-
- width: 100%; 
- max-width: 440px; 
- padding: 40px; 
- margin: 20px; 
- border-radius: 32px; 
-
- background: 
- linear-gradient( 
- 135deg, 
- rgba(255,255,255,0.10), 
- rgba(255,255,255,0.03) 
- ); 
-
- backdrop-filter: blur(28px) saturate(180%); 
- -webkit-backdrop-filter: blur(28px) saturate(180%); 
-
- border: 1px solid rgba(255,255,255,0.12); 
-
- box-shadow: 
- inset 0 1px 1px rgba(255,255,255,0.08), 
- 0 25px 50px rgba(0,0,0,0.45); 
-
- overflow: hidden; 
- isolation: isolate; 
-
- transform: translateY(20px); 
- opacity: 0; 
-
- animation: 
- fadeInUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards; 
- } 
-
- .glass-card::before { 
- content: ''; 
- position: absolute; 
- inset: 0; 
-
- background: 
- linear-gradient( 
- 145deg, 
- rgba(255,255,255,0.12), 
- transparent 35% 
- ); 
-
- pointer-events: none; 
- z-index: 0; 
- } 
-
- .glass-card > * { 
- position: relative; 
- z-index: 2; 
- } 
-
- .glass-card * { 
- pointer-events: auto; 
- } 
-
- @keyframes fadeInUp { 
- to { 
- opacity: 1; 
- transform: translateY(0); 
- } 
- } 
-
- header { 
- display: flex; 
- justify-content: space-between; 
- align-items: flex-start; 
- margin-bottom: 40px; 
- } 
-
- .title-gradient { 
- font-size: 36px; 
- font-weight: 800; 
- letter-spacing: -2px; 
-
- background: 
- linear-gradient( 
- to right, 
- #ffffff, 
- rgba(255,255,255,0.55) 
- ); 
-
- -webkit-background-clip: text; 
- -webkit-text-fill-color: transparent; 
-
- line-height: 1; 
- } 
-
- .status-dot { 
- width: 8px; 
- height: 8px; 
- background: #4ade80; 
- border-radius: 50%; 
- margin-top: 12px; 
-
- box-shadow: 
- 0 0 12px rgba(74, 222, 128, 0.6); 
- } 
-
- /* ========================= 
- INPUTS 
- ========================= */ 
-
- .input-wrapper { 
- position: relative; 
- margin-bottom: 24px; 
- z-index: 10000; 
- } 
-
- input { 
- width: 100%; 
-
- background: 
- rgba(0, 0, 0, 0.32); 
-
- border: 
- 1px solid rgba(255,255,255,0.08); 
-
- padding: 20px; 
- border-radius: 18px; 
-
- color: white; 
- font-size: 18px; 
- font-weight: 500; 
-
- outline: none; 
-
- transition: all 0.3s ease; 
-
- position: relative; 
- z-index: 10001; 
-
- backdrop-filter: blur(12px); 
- -webkit-backdrop-filter: blur(12px); 
- } 
-
- input::placeholder { 
- color: rgba(255,255,255,0.28); 
- } 
-
- input:focus { 
- background: 
- rgba(0,0,0,0.42); 
-
- border-color: var(--primary); 
-
- box-shadow: 
- 0 0 0 1px rgba(255,255,255,0.04), 
- 0 0 30px rgba(0,210,255,0.20); 
- } 
-
- input.error { 
- border-color: #ff4b2b; 
- animation: shake 0.4s ease; 
- } 
-
- input.valid { 
- border-color: #4ade80; 
- } 
-
- @keyframes shake { 
- 0%, 100% { 
- transform: translateX(0); 
- } 
-
- 25% { 
- transform: translateX(-6px); 
- } 
-
- 75% { 
- transform: translateX(6px); 
- } 
- } 
-
- #error-msg { 
- color: #ff4b2b; 
- font-size: 13px; 
- font-weight: 700; 
- margin-top: 8px; 
- display: none; 
- align-items: center; 
- gap: 6px; 
- } 
-
- /* ========================= 
- BUTTON 
- ========================= */ 
-
- button { 
- width: 100%; 
- padding: 20px; 
-
- border-radius: 18px; 
- border: none; 
-
- color: white; 
- font-size: 18px; 
- font-weight: 800; 
-
- cursor: pointer; 
-
- display: flex; 
- align-items: center; 
- justify-content: center; 
- gap: 10px; 
-
- transition: all 0.3s ease; 
-
- box-shadow: 
- 0 10px 40px -10px rgba(0, 210, 255, 0.45); 
-
- background: 
- linear-gradient( 
- 135deg, 
- var(--primary), 
- var(--secondary) 
- ); 
- } 
-
- button:hover { 
- transform: translateY(-2px); 
- filter: brightness(1.08); 
- } 
-
- button:active { 
- transform: scale(0.98); 
- } 
-
- /* ========================= 
- HISTORY 
- ========================= */ 
-
- .history-section { 
- margin-top: 48px; 
- } 
-
- .history-section h4 { 
- font-size: 11px; 
- font-weight: 800; 
- text-transform: uppercase; 
- letter-spacing: 2px; 
- color: rgba(255,255,255,0.35); 
- margin-bottom: 16px; 
- } 
-
- .history-item { 
- background: 
- rgba(255,255,255,0.05); 
-
- border: 
- 1px solid rgba(255,255,255,0.06); 
-
- padding: 16px; 
- border-radius: 14px; 
-
- display: flex; 
- justify-content: space-between; 
- align-items: center; 
-
- margin-bottom: 10px; 
-
- cursor: pointer; 
-
- transition: all 0.2s ease; 
-
- backdrop-filter: blur(10px); 
- } 
-
- .history-item:hover { 
- background: 
- rgba(255,255,255,0.09); 
-
- border-color: 
- rgba(255,255,255,0.16); 
-
- transform: translateX(4px); 
- } 
-
- .history-item span:first-child { 
- font-family: 'JetBrains Mono', monospace; 
- font-weight: 600; 
- color: rgba(255,255,255,0.82); 
- } 
-
- .history-item span:last-child { 
- font-size: 10px; 
- font-weight: 600; 
- color: rgba(255,255,255,0.25); 
- } 
-
- /* ========================= 
- DECORATION 
- ========================= */ 
-
- .overlay-text { 
- position: fixed; 
- bottom: 32px; 
- left: 32px; 
-
- opacity: 0.3; 
- pointer-events: none; 
- z-index: 2; 
- } 
-
- .overlay-text div:first-child { 
- font-size: 12px; 
- font-weight: 800; 
- text-transform: uppercase; 
- letter-spacing: 3px; 
- } 
-
- .overlay-text div:last-child { 
- font-size: 10px; 
- font-weight: 500; 
- color: rgba(255,255,255,0.5); 
- margin-top: 2px; 
- } 
-
- .logo-placeholder { 
- position: absolute; 
- top: 20px; 
- left: 40px; 
-
- width: 100px; 
- height: 100px;  
-
- display: flex; 
- align-items: center; 
- justify-content: center; 
-
- font-size: 20px; 
- font-weight: 800; 
- color: rgba(255,255,255,0.15); 
- letter-spacing: 1px; 
-
- visibility: hidden; 
- pointer-events: none; 
- } 
-
- @media (min-width: 1024px) { 
- .logo-placeholder { 
- visibility: visible; 
- } 
- } 
-
- .icon { 
- width: 20px; 
- height: 20px; 
- stroke: currentColor; 
- fill: none; 
- stroke-width: 2.5; 
- stroke-linecap: round; 
- stroke-linejoin: round; 
- } 
- </style> 
-</head> 
-
-<body> 
-
- <div id="liquid-bg"> 
-
- <div id="blob1" 
- class="blob animate-blob" 
- style=" 
- width: 800px; 
- height: 800px; 
- top: -200px; 
- left: -200px; 
- "> 
- </div> 
-
- <div id="blob2" 
- class="blob animate-blob" 
- style=" 
- width: 700px; 
- height: 700px; 
- bottom: -200px; 
- right: -200px; 
- animation-delay: -5s; 
- "> 
- </div> 
-
- </div> 
-
- <div class="logo-placeholder">HOVER</div> 
-
- <div class="glass-card"> 
-
- <header> 
-
- <div> 
-
- <h1 class="title-gradient"> 
- Order Lookup 
- </h1> 
-
- <p style=" 
- color: rgba(255,255,255,0.4); 
- font-size: 13px; 
- font-weight: 500; 
- text-transform: uppercase; 
- letter-spacing: 1.5px; 
- margin-top: 4px; 
- "> 
- Secure Order Vault 
- </p> 
-
- </div> 
-
- <div class="status-dot"></div> 
-
- </header> 
-
- <div class="input-wrapper"> 
-
- <input 
- type="text" 
- id="orderInput" 
- placeholder="Order Number (e.g. 55012)" 
- autocomplete="off" 
- /> 
-
- <div id="error-msg"> 
-
- <svg class="icon"> 
- <circle cx="12" cy="12" r="10"/> 
- <line x1="12" y1="8" x2="12" y2="12"/> 
- <line x1="12" y1="16" x2="12.01" y2="16"/> 
- </svg> 
-
- <span>Invalid Order Format</span> 
-
- </div> 
- </div> 
-
- <button id="searchBtn"> 
-
- <span>Initiate Lookup</span> 
-
- <svg class="icon" viewBox="0 0 24 24"> 
- <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/> 
- <polyline points="15 3 21 3 21 9"/> 
- <line x1="10" y1="14" x2="21" y2="3"/> 
- </svg> 
-
- </button> 
-
- <div 
- id="history-container" 
- class="history-section" 
- style="display: none;" 
- > 
- <h4>Recent History</h4> 
-
- <div id="history-list"></div> 
- </div> 
-
- </div> 
-
- <div class="overlay-text"> 
-
- <div>Phase Status</div> 
-
- <div> 
- Version v1.5 Built
- </div> 
-
- </div> 
-
- <script> 
-
- const ONE_HOUR = 60 * 60 * 1000; 
-
-setInterval(() => { 
-
- const before = history.length; 
-
- history = history.filter(item => 
- Date.now() - item.createdAt < ONE_HOUR 
- ); 
-
- // Si cambió algo, actualiza storage y UI 
- if (history.length !== before) { 
- localStorage.setItem('orderHistory', JSON.stringify(history)); 
- renderHistory(); 
- } 
-
-}, 30000); // cada 30 segundos 
-
- const BACKGROUNDS = [ 
- { 
- bg1: '#0f172a', 
- bg2: '#1e293b', 
- primary: '#00d2ff', 
- secondary: '#9d50bb', 
- image: 'https://images.pexels.com/photos/13856341/pexels-photo-13856341.jpeg' 
- }, 
- { 
- bg1: '#1a1a2e', 
- bg2: '#16213e', 
- primary: '#e94560', 
- secondary: '#0f3460', 
- image: 'https://images.pexels.com/photos/4626277/pexels-photo-4626277.jpeg' 
- }, 
- { 
- bg1: '#070b0d', 
- bg2: '#1a2a2f', 
- primary: '#00ffa3', 
- secondary: '#00a8ff', 
- image: 'https://images.pexels.com/photos/13729358/pexels-photo-13729358.png' 
- },
- { 
- bg1: '#070b0d', 
- bg2: '#1a2a2f', 
- primary: '#00ffa3', 
- secondary: '#00a8ff', 
- image: 'https://images.pexels.com/photos/32361967/pexels-photo-32361967.jpeg' 
- },
- { 
- bg1: '#070b0d', 
- bg2: '#1a2a2f', 
- primary: '#00ffa3', 
- secondary: '#00a8ff', 
- image: 'https://images.pexels.com/photos/10970572/pexels-photo-10970572.jpeg' 
- },
- { 
- bg1: '#070b0d', 
- bg2: '#1a2a2f', 
- primary: '#00ffa3', 
- secondary: '#00a8ff', 
- image: 'https://images.pexels.com/photos/15764116/pexels-photo-15764116.jpeg' 
- },
- { 
- bg1: '#070b0d', 
- bg2: '#1a2a2f', 
- primary: '#00ffa3', 
- secondary: '#00a8ff', 
- image: 'https://images.pexels.com/photos/27085003/pexels-photo-27085003.jpeg' 
- },
- { 
- bg1: '#070b0d', 
- bg2: '#1a2a2f', 
- primary: '#00ffa3', 
- secondary: '#00a8ff', 
- image: 'https://images.pexels.com/photos/7032055/pexels-photo-7032055.jpeg' 
- },
- { 
- bg1: '#070b0d', 
- bg2: '#1a2a2f', 
- primary: '#00ffa3', 
- secondary: '#00a8ff', 
- image: 'https://images.pexels.com/photos/9524691/pexels-photo-9524691.jpeg' 
- },
- { 
- bg1: '#070b0d', 
- bg2: '#1a2a2f', 
- primary: '#00ffa3', 
- secondary: '#00a8ff', 
- image: 'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg' 
+ 0%, 100% {
+ transform: translate(-10%, -10%) scale(1);
  }
- ]; 
 
- let bgIndex = 0; 
+ 50% {
+ transform: translate(15%, 15%) scale(1.15);
+ }
+}
+
+.animate-blob {
+ animation: move 20s infinite alternate ease-in-out;
+}
+
+/* =========================
+GLASS CARD
+========================= */
+
+.glass-card {
+ position: relative;
+ z-index: 9999;
+
+ width: 100%;
+ max-width: 440px;
+ padding: 40px;
+ margin: 20px;
+ border-radius: 32px;
+
+ background:
+ linear-gradient(
+ 135deg,
+ rgba(255,255,255,0.10),
+ rgba(255,255,255,0.03)
+ );
+
+ backdrop-filter: blur(28px) saturate(180%);
+ -webkit-backdrop-filter: blur(28px) saturate(180%);
+
+ border: 1px solid rgba(255,255,255,0.12);
+
+ box-shadow:
+ inset 0 1px 1px rgba(255,255,255,0.08),
+ 0 25px 50px rgba(0,0,0,0.45);
+
+ overflow: hidden;
+ isolation: isolate;
+
+ transform: translateY(20px);
+ opacity: 0;
+
+ animation:
+ fadeInUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+.glass-card::before {
+ content: '';
+ position: absolute;
+ inset: 0;
+
+ background:
+ linear-gradient(
+ 145deg,
+ rgba(255,255,255,0.12),
+ transparent 35%
+ );
+
+ pointer-events: none;
+ z-index: 0;
+}
+
+.glass-card > * {
+ position: relative;
+ z-index: 2;
+}
+
+.glass-card * {
+ pointer-events: auto;
+}
+
+@keyframes fadeInUp {
+
+ to {
+ opacity: 1;
+ transform: translateY(0);
+ }
+}
+
+header {
+ display: flex;
+ justify-content: space-between;
+ align-items: flex-start;
+ margin-bottom: 40px;
+}
+
+.title-gradient {
+ font-size: 36px;
+ font-weight: 800;
+ letter-spacing: -2px;
+
+ background:
+ linear-gradient(
+ to right,
+ #ffffff,
+ rgba(255,255,255,0.55)
+ );
 
- let history = JSON.parse( 
- localStorage.getItem('orderHistory') || '[]' 
- ); 
+ -webkit-background-clip: text;
+ -webkit-text-fill-color: transparent;
 
- const input = document.getElementById('orderInput'); 
- const btn = document.getElementById('searchBtn'); 
- const errorMsg = document.getElementById('error-msg'); 
- const historyContainer = document.getElementById('history-container'); 
- const historyList = document.getElementById('history-list'); 
+ line-height: 1;
+}
 
- const mainBg = document.getElementById('liquid-bg'); 
+.status-dot {
+ width: 8px;
+ height: 8px;
+ background: #4ade80;
+ border-radius: 50%;
+ margin-top: 12px;
 
- const blob1 = document.getElementById('blob1'); 
- const blob2 = document.getElementById('blob2'); 
+ box-shadow:
+ 0 0 12px rgba(74, 222, 128, 0.6);
+}
 
- /* ========================= 
- BACKGROUND LAYERS 
- ========================= */ 
+/* =========================
+INPUTS
+========================= */
 
- let activeLayer = 0; 
+.input-wrapper {
+ position: relative;
+ margin-bottom: 24px;
+ z-index: 10000;
+}
 
- const layer1 = document.createElement('div'); 
- const layer2 = document.createElement('div'); 
+input {
+ width: 100%;
 
- layer1.className = 'bg-layer bg-visible'; 
- layer2.className = 'bg-layer bg-hidden'; 
+ background:
+ rgba(0, 0, 0, 0.32);
 
- mainBg.prepend(layer1); 
- mainBg.prepend(layer2); 
+ border:
+ 1px solid rgba(255,255,255,0.08);
 
- function updateBackground() { 
+ padding: 20px;
+ border-radius: 18px;
 
- const current = BACKGROUNDS[bgIndex]; 
+ color: white;
+ font-size: 18px;
+ font-weight: 500;
 
- const visibleLayer = 
- activeLayer === 0 ? layer1 : layer2; 
+ outline: none;
 
- const hiddenLayer = 
- activeLayer === 0 ? layer2 : layer1; 
+ transition: all 0.3s ease;
 
- hiddenLayer.style.backgroundImage = 
- `url(${current.image})`; 
+ position: relative;
+ z-index: 10001;
 
- hiddenLayer.classList.remove('bg-hidden'); 
- hiddenLayer.classList.add('bg-visible'); 
+ backdrop-filter: blur(12px);
+ -webkit-backdrop-filter: blur(12px);
+}
 
- visibleLayer.classList.remove('bg-visible'); 
- visibleLayer.classList.add('bg-hidden'); 
+input::placeholder {
+ color: rgba(255,255,255,0.28);
+}
 
- blob1.style.background = 
- `radial-gradient(circle, ${current.primary}40 0%, transparent 70%)`; 
+input:focus {
+ background:
+ rgba(0,0,0,0.42);
+
+ border-color: var(--primary);
+
+ box-shadow:
+ 0 0 0 1px rgba(255,255,255,0.04),
+ 0 0 30px color-mix(in srgb, var(--primary) 50%, transparent);
+}
+
+input.error {
+ border-color: #ff4b2b;
+ animation: shake 0.4s ease;
+}
+
+input.valid {
+ border-color: #4ade80;
+}
+
+@keyframes shake {
+
+ 0%, 100% {
+ transform: translateX(0);
+ }
 
- blob2.style.background = 
- `radial-gradient(circle, ${current.secondary}40 0%, transparent 70%)`; 
+ 25% {
+ transform: translateX(-6px);
+ }
 
- document.documentElement.style.setProperty( 
- '--primary', 
- current.primary 
- ); 
+ 75% {
+ transform: translateX(6px);
+ }
+}
 
- document.documentElement.style.setProperty( 
- '--secondary', 
- current.secondary 
- ); 
+#error-msg {
+ color: #ff4b2b;
+ font-size: 13px;
+ font-weight: 700;
+ margin-top: 8px;
+ display: none;
+ align-items: center;
+ gap: 6px;
+}
 
- activeLayer = activeLayer === 0 ? 1 : 0; 
- } 
+/* =========================
+BUTTON
+========================= */
 
- /* ========================= 
- RELATIVE TIME 
- ========================= */ 
+button {
+ width: 100%;
+ padding: 20px;
 
- function getRelativeTime(timestamp) { 
+ border-radius: 18px;
+ border: none;
 
- const seconds = 
- Math.floor((Date.now() - timestamp) / 1000); 
+ color: white;
+ font-size: 18px;
+ font-weight: 800;
 
- if (seconds < 60) { 
- return 'Just now'; 
- } 
+ cursor: pointer;
 
- const minutes = 
- Math.floor(seconds / 60); 
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 10px;
 
- if (minutes < 60) { 
- return `${minutes} min ago`; 
- } 
+ transition: all 0.3s ease;
 
- const hours = 
- Math.floor(minutes / 60); 
+ box-shadow:
+ 0 10px 40px -10px color-mix(in srgb, var(--primary) 70%, transparent);
+
+ background:
+ linear-gradient(
+ 135deg,
+ var(--primary),
+ var(--secondary)
+ );
+}
+
+button:hover {
+ transform: translateY(-2px);
+ filter: brightness(1.08);
+}
+
+button:active {
+ transform: scale(0.98);
+}
+
+/* =========================
+HISTORY
+========================= */
+
+.history-section {
+ margin-top: 48px;
+}
+
+.history-section h4 {
+ font-size: 11px;
+ font-weight: 800;
+ text-transform: uppercase;
+ letter-spacing: 2px;
+ color: rgba(255,255,255,0.35);
+ margin-bottom: 16px;
+}
+
+.history-item {
+ background:
+ rgba(255,255,255,0.05);
+
+ border:
+ 1px solid rgba(255,255,255,0.06);
+
+ padding: 16px;
+ border-radius: 14px;
+
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+
+ margin-bottom: 10px;
+
+ cursor: pointer;
+
+ transition: all 0.2s ease;
+
+ backdrop-filter: blur(10px);
+}
+
+.history-item:hover {
+ background:
+ rgba(255,255,255,0.09);
+
+ border-color:
+ rgba(255,255,255,0.16);
+
+ transform: translateX(4px);
+}
+
+.history-item span:first-child {
+ font-family: 'JetBrains Mono', monospace;
+ font-weight: 600;
+ color: rgba(255,255,255,0.82);
+}
+
+.history-item span:last-child {
+ font-size: 10px;
+ font-weight: 600;
+ color: rgba(255,255,255,0.25);
+}
+
+/* =========================
+DECORATION
+========================= */
+
+.overlay-text {
+ position: fixed;
+ bottom: 32px;
+ left: 32px;
+
+ opacity: 0.3;
+ pointer-events: none;
+ z-index: 2;
+}
+
+.overlay-text div:first-child {
+ font-size: 12px;
+ font-weight: 800;
+ text-transform: uppercase;
+ letter-spacing: 3px;
+}
+
+.overlay-text div:last-child {
+ font-size: 10px;
+ font-weight: 500;
+ color: rgba(255,255,255,0.5);
+ margin-top: 2px;
+}
+
+.logo-placeholder {
+ position: absolute;
+ top: 20px;
+ left: 40px;
+
+ width: 100px;
+ height: 100px;
+
+ display: flex;
+ align-items: center;
+ justify-content: center;
+
+ font-size: 20px;
+ font-weight: 800;
+ color: rgba(255,255,255,0.15);
+ letter-spacing: 1px;
+
+ visibility: hidden;
+ pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+
+ .logo-placeholder {
+ visibility: visible;
+ }
+}
+
+.icon {
+ width: 20px;
+ height: 20px;
+ stroke: currentColor;
+ fill: none;
+ stroke-width: 2.5;
+ stroke-linecap: round;
+ stroke-linejoin: round;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="liquid-bg">
+
+ <div
+ id="blob1"
+ class="blob animate-blob"
+ style="
+ width: 800px;
+ height: 800px;
+ top: -200px;
+ left: -200px;
+ ">
+ </div>
 
- if (hours < 24) { 
- return `${hours}h ago`; 
- } 
+ <div
+ id="blob2"
+ class="blob animate-blob"
+ style="
+ width: 700px;
+ height: 700px;
+ bottom: -200px;
+ right: -200px;
+ animation-delay: -5s;
+ ">
+ </div>
 
- const days = 
- Math.floor(hours / 24); 
+</div>
 
- return `${days}d ago`; 
- } 
+<div class="logo-placeholder">
+HOVER
+</div>
 
- /* ========================= 
- SEARCH 
- ========================= */ 
+<div class="glass-card">
 
- function handleSearch(directValue) { 
+<header>
 
- const val = 
- directValue || input.value.trim(); 
+ <div>
 
- input.classList.remove('error', 'valid'); 
+ <h1 class="title-gradient">
+ Order Lookup
+ </h1>
 
- errorMsg.style.display = 'none'; 
+ <p style="
+ color: rgba(255,255,255,0.4);
+ font-size: 13px;
+ font-weight: 500;
+ text-transform: uppercase;
+ letter-spacing: 1.5px;
+ margin-top: 4px;
+ ">
+ Secure Order Vault
+ </p>
 
- if (!/^\d+$/.test(val)) { 
+ </div>
 
- input.classList.add('error'); 
+ <div class="status-dot"></div>
 
- errorMsg.style.display = 'flex'; 
+</header>
 
- setTimeout(() => { 
- input.classList.remove('error'); 
- }, 400); 
+<div class="input-wrapper">
 
- return; 
- } 
+ <input
+ type="text"
+ id="orderInput"
+ placeholder="Order Number (e.g. 55012)"
+ autocomplete="off"
+ />
 
- input.classList.add('valid'); 
+ <div id="error-msg">
 
- window.open( 
- `https://manowar.hover.to/orders/${val}`, 
- '_blank' 
- ); 
+ <svg class="icon">
+ <circle cx="12" cy="12" r="10"/>
+ <line x1="12" y1="8" x2="12" y2="12"/>
+ <line x1="12" y1="16" x2="12.01" y2="16"/>
+ </svg>
 
- if (!history.find(h => h.number === val)) { 
+ <span>Invalid Order Format</span>
 
- history.unshift({ 
- number: val, 
- createdAt: Date.now() 
- }); 
+ </div>
 
- history = history.slice(0, 5); 
+</div>
 
- localStorage.setItem( 
- 'orderHistory', 
- JSON.stringify(history) 
- ); 
+<button id="searchBtn">
 
- renderHistory(); 
- } 
+ <span>Initiate Lookup</span>
 
- input.value = ''; 
+ <svg class="icon" viewBox="0 0 24 24">
+ <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+ <polyline points="15 3 21 3 21 9"/>
+ <line x1="10" y1="14" x2="21" y2="3"/>
+ </svg>
 
- setTimeout(() => { 
- input.classList.remove('valid'); 
- }, 2000); 
- } 
+</button>
 
- /* ========================= 
- HISTORY 
- ========================= */ 
+<div
+ id="history-container"
+ class="history-section"
+ style="display: none;"
+>
 
- function renderHistory() { 
+ <h4>Recent History</h4>
 
- if (history.length === 0) { 
+ <div id="history-list"></div>
 
- historyContainer.style.display = 'none'; 
+</div>
 
- return; 
- } 
+</div>
 
- historyContainer.style.display = 'block'; 
+<div class="overlay-text">
 
- historyList.innerHTML = ''; 
+<div>Phase Status</div>
 
- history.forEach(item => { 
+<div>
+Version v1.5 Built
+</div>
 
- const div = document.createElement('div'); 
+</div>
 
- div.className = 'history-item'; 
+<script>
 
- div.innerHTML = ` 
- <span>#${item.number}</span> 
- <span>${getRelativeTime(item.createdAt)}</span> 
- `; 
+/* =========================
+AUTO CLEAN HISTORY
+========================= */
 
- div.onclick = () => 
- handleSearch(item.number); 
+const ONE_HOUR = 60 * 60 * 1000;
 
- historyList.appendChild(div); 
- }); 
- } 
+setInterval(() => {
 
- /* ========================= 
- INIT 
- ========================= */ 
+ const before = history.length;
 
- updateBackground(); 
+ history = history.filter(item =>
+ Date.now() - item.createdAt < ONE_HOUR
+ );
 
- renderHistory(); 
+ if (history.length !== before) {
 
- setInterval(() => { 
+ localStorage.setItem(
+ 'orderHistory',
+ JSON.stringify(history)
+ );
 
- bgIndex = 
- (bgIndex + 1) % BACKGROUNDS.length; 
+ renderHistory();
+ }
 
- updateBackground(); 
+}, 30000);
 
- }, 75000); 
+/* =========================
+BACKGROUND IMAGES
+========================= */
 
- /* ACTUALIZAR TIEMPOS */ 
+const BACKGROUNDS = [
 
- setInterval(() => { 
- renderHistory(); 
- }, 30000); 
+ {
+ image: 'https://images.pexels.com/photos/13856341/pexels-photo-13856341.jpeg'
+ },
 
- btn.onclick = () => handleSearch(); 
+ {
+ image: 'https://images.pexels.com/photos/4626277/pexels-photo-4626277.jpeg'
+ },
 
- input.addEventListener('keydown', (e) => { 
+ {
+ image: 'https://images.pexels.com/photos/13729358/pexels-photo-13729358.png'
+ },
 
- if (e.key === 'Enter') { 
- handleSearch(); 
- } 
- }); 
+ {
+ image: 'https://images.pexels.com/photos/32361967/pexels-photo-32361967.jpeg'
+ },
 
- setTimeout(() => { 
- input.focus(); 
- }, 300); 
- </script> 
+ {
+ image: 'https://images.pexels.com/photos/10970572/pexels-photo-10970572.jpeg'
+ },
 
-</body> 
+ {
+ image: 'https://images.pexels.com/photos/15764116/pexels-photo-15764116.jpeg'
+ },
 
- </html>
+ {
+ image: 'https://images.pexels.com/photos/27085003/pexels-photo-27085003.jpeg'
+ },
+
+ {
+ image: 'https://images.pexels.com/photos/7032055/pexels-photo-7032055.jpeg'
+ },
+
+ {
+ image: 'https://images.pexels.com/photos/9524691/pexels-photo-9524691.jpeg'
+ },
+
+ {
+ image: 'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg'
+ }
+
+];
+
+/* =========================
+CURATED COLOR PALETTES
+========================= */
+
+const PALETTES = [
+
+ ['#00d2ff', '#9d50bb'],
+ ['#ff512f', '#dd2476'],
+ ['#00ffa3', '#00c6ff'],
+ ['#7f00ff', '#e100ff'],
+ ['#00f260', '#0575e6'],
+ ['#fc466b', '#3f5efb'],
+ ['#f7971e', '#ffd200'],
+ ['#11998e', '#38ef7d'],
+ ['#12c2e9', '#c471ed'],
+ ['#ff0080', '#7928ca'],
+ ['#00b09b', '#96c93d'],
+ ['#ff9966', '#ff5e62']
+
+];
+
+let bgIndex = 0;
+
+let history = JSON.parse(
+ localStorage.getItem('orderHistory') || '[]'
+);
+
+const input = document.getElementById('orderInput');
+const btn = document.getElementById('searchBtn');
+const errorMsg = document.getElementById('error-msg');
+
+const historyContainer =
+document.getElementById('history-container');
+
+const historyList =
+document.getElementById('history-list');
+
+const mainBg =
+document.getElementById('liquid-bg');
+
+const blob1 =
+document.getElementById('blob1');
+
+const blob2 =
+document.getElementById('blob2');
+
+/* =========================
+BACKGROUND LAYERS
+========================= */
+
+let activeLayer = 0;
+
+const layer1 = document.createElement('div');
+const layer2 = document.createElement('div');
+
+layer1.className = 'bg-layer bg-visible';
+layer2.className = 'bg-layer bg-hidden';
+
+mainBg.prepend(layer1);
+mainBg.prepend(layer2);
+
+/* =========================
+BACKGROUND UPDATE
+========================= */
+
+function updateBackground() {
+
+ const current = BACKGROUNDS[bgIndex];
+
+ const visibleLayer =
+ activeLayer === 0 ? layer1 : layer2;
+
+ const hiddenLayer =
+ activeLayer === 0 ? layer2 : layer1;
+
+ hiddenLayer.style.backgroundImage =
+ `url(${current.image})`;
+
+ hiddenLayer.classList.remove('bg-hidden');
+ hiddenLayer.classList.add('bg-visible');
+
+ visibleLayer.classList.remove('bg-visible');
+ visibleLayer.classList.add('bg-hidden');
+
+ /* RANDOM CURATED PALETTE */
+
+ const randomPalette =
+ PALETTES[Math.floor(Math.random() * PALETTES.length)];
+
+ const primary = randomPalette[0];
+ const secondary = randomPalette[1];
+
+ document.documentElement.style.setProperty(
+ '--primary',
+ primary
+ );
+
+ document.documentElement.style.setProperty(
+ '--secondary',
+ secondary
+ );
+
+ blob1.style.background =
+ `radial-gradient(circle, ${primary}55 0%, transparent 70%)`;
+
+ blob2.style.background =
+ `radial-gradient(circle, ${secondary}55 0%, transparent 70%)`;
+
+ activeLayer = activeLayer === 0 ? 1 : 0;
+}
+
+/* =========================
+RELATIVE TIME
+========================= */
+
+function getRelativeTime(timestamp) {
+
+ const seconds =
+ Math.floor((Date.now() - timestamp) / 1000);
+
+ if (seconds < 60) {
+ return 'Just now';
+ }
+
+ const minutes =
+ Math.floor(seconds / 60);
+
+ if (minutes < 60) {
+ return `${minutes} min ago`;
+ }
+
+ const hours =
+ Math.floor(minutes / 60);
+
+ if (hours < 24) {
+ return `${hours}h ago`;
+ }
+
+ const days =
+ Math.floor(hours / 24);
+
+ return `${days}d ago`;
+}
+
+/* =========================
+SEARCH
+========================= */
+
+function handleSearch(directValue) {
+
+ const val =
+ directValue || input.value.trim();
+
+ input.classList.remove('error', 'valid');
+
+ errorMsg.style.display = 'none';
+
+ if (!/^\d+$/.test(val)) {
+
+ input.classList.add('error');
+
+ errorMsg.style.display = 'flex';
+
+ setTimeout(() => {
+ input.classList.remove('error');
+ }, 400);
+
+ return;
+ }
+
+ input.classList.add('valid');
+
+ window.open(
+ `https://manowar.hover.to/orders/${val}`,
+ '_blank'
+ );
+
+ if (!history.find(h => h.number === val)) {
+
+ history.unshift({
+ number: val,
+ createdAt: Date.now()
+ });
+
+ history = history.slice(0, 5);
+
+ localStorage.setItem(
+ 'orderHistory',
+ JSON.stringify(history)
+ );
+
+ renderHistory();
+ }
+
+ input.value = '';
+
+ setTimeout(() => {
+ input.classList.remove('valid');
+ }, 2000);
+}
+
+/* =========================
+HISTORY
+========================= */
+
+function renderHistory() {
+
+ if (history.length === 0) {
+
+ historyContainer.style.display = 'none';
+
+ return;
+ }
+
+ historyContainer.style.display = 'block';
+
+ historyList.innerHTML = '';
+
+ history.forEach(item => {
+
+ const div = document.createElement('div');
+
+ div.className = 'history-item';
+
+ div.innerHTML = `
+ <span>#${item.number}</span>
+ <span>${getRelativeTime(item.createdAt)}</span>
+ `;
+
+ div.onclick = () =>
+ handleSearch(item.number);
+
+ historyList.appendChild(div);
+
+ });
+}
+
+/* =========================
+INIT
+========================= */
+
+updateBackground();
+
+renderHistory();
+
+setInterval(() => {
+
+ bgIndex =
+ (bgIndex + 1) % BACKGROUNDS.length;
+
+ updateBackground();
+
+}, 75000);
+
+setInterval(() => {
+ renderHistory();
+}, 30000);
+
+btn.onclick = () => handleSearch();
+
+input.addEventListener('keydown', (e) => {
+
+ if (e.key === 'Enter') {
+ handleSearch();
+ }
+});
+
+setTimeout(() => {
+ input.focus();
+}, 300);
+
+</script>
+
+</body>
+</html>
